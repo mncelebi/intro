@@ -1,0 +1,21 @@
+{
+  "categories": [
+    {
+      "categoryId": 1,
+      "text": "Yaşlı ve Hasta Bakıcısı"
+    },
+    {
+      "categoryId": 2,
+      "text": "Oyun Ablası"
+    },
+    {
+      "categoryId": 3,
+      "text": "Özel Ders"
+    },
+    {
+      "categoryId": 4,
+      "text": "Bebek ve Çocuk Bakıcısı"
+    }
+  ]
+}
+
