@@ -1,103 +1,86 @@
 import React, { Component } from "react";
 
-import { Container, Row, Col, Pagination, PaginationItem, PaginationLink } from "reactstrap";
+import {
+  Container,
+  Row,
+  Col,
+  Pagination,
+  PaginationItem,
+  PaginationLink
+} from "reactstrap";
 
-import CategoryList from './CategoryList';
-import PersonsComponent from './PersonsComponent';
-import PaginationComponent from './PaginationComponent';
+import CategoryList from "./CategoryList";
+import PersonsComponent from "./PersonsComponent";
+import { bindActionCreators } from "redux";
+import { connect } from "react-redux";
 
-export default class App extends Component {
-  state = {suppliers: [], categories:[], cities:[], totalPageCount:[]};
+import * as suppliersActions from "./redux/actions/suppliersActions";
+
+class App extends Component {
+  state = { cities: [], totalPageCount: [], currentPage: 1 };
 
   componentDidMount() {
-    this.getSuppliers();
-    this.getCategories();
-    this.getCities();
+    this.props.actions.getSuppliers(this.state.currentPage);
   }
 
-  getSuppliers = categoryId => {
-    let url = "https://api.evdekibakicim.com/suppliers/list";
-    if (categoryId) {
-      url += "?categoryId=" + categoryId;
-    }
-  
-
-    fetch(url)
-      .then(response => response.json())
-      .then(data => this.setState({ suppliers: data.response.suppliers, totalPageCount: data.response.totalPageCount }))
+  page = async pageId => {
+    this.setState({ currentPage: pageId });
+    this.props.actions.getSuppliers(this.state.currentPage);
   };
 
-
-  getCategories= categoryId => {
-    let url1 = "http://localhost:3000/categories";
-    if (categoryId) {
-      url1 += "?categoryId=" + categoryId;
-    }
-  
-
-    fetch(url1)
-      .then(response => response.json())
-      .then(data => this.setState({ categories: data }));
+  pageIncrement = async pageId => {
+    this.setState({ currentPage: pageId + 1 });
+    this.props.actions.getSuppliers(this.state.currentPage);
   };
 
-  getCities= cityId => {
-    let url2 = "http://localhost:3001/cities";
-    if (cityId) {
-      url2 += "?cityId=" + cityId;
-    }
-  
-
-    fetch(url2)
-      .then(response => response.json())
-      .then(data => this.setState({ cities: data }));
-  }; 
+  pageDecrement = async pageId => {
+    this.setState({ currentPage: pageId - 1 });
+    this.props.actions.getSuppliers(this.state.currentPage);
+  };
 
   render() {
-
     const pages = [];
 
     for (let i = 1; i <= 9; i++) {
-        pages.push(i);
+      pages.push(i);
     }
 
- 
+    const paginationNext = () => this.pageIncrement(this.state.currentPage);
+    const paginationPrevious = () => this.pageDecrement(this.state.currentPage);
+    const pagination = page => this.page(page);
+
     return (
       <div>
         <Container>
           <Row>
-            
             <Col md="3" class=" ml-2 border ">
-            <CategoryList categories={this.state.categories} cities={this.state.cities} />
+              <CategoryList />
             </Col>
             <div class="row ml-2 border-left "> </div>
             <Col md="9">
-             <PersonsComponent
-              suppliers={this.state.suppliers}
-             />
-            <Pagination className= "float-right mt-2">
-              <PaginationItem>
-                 <PaginationLink first href="#" />
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationLink previous href="2" />
-              </PaginationItem>
+              <PersonsComponent suppliers={this.props.suppliers} />
 
-        {pages.map(function(item) {
-            return <PaginationItem>
-              <PaginationLink href="#">
-                {item}
-              </PaginationLink>
-             </PaginationItem>;
-        })}
-
-      <PaginationItem>
-        <PaginationLink next href="#" />
-      </PaginationItem>
-      <PaginationItem>
-        <PaginationLink last href="#" />
-      </PaginationItem>
-    </Pagination>
-                
+              <Pagination className="float-right mt-2">
+                <PaginationItem>
+                  <PaginationLink onClick={paginationPrevious} first />
+                </PaginationItem>
+                {pages.map(function(item) {
+                  return (
+                    <PaginationItem>
+                      <PaginationLink
+                        onClick={() => {
+                          pagination(item);
+                        }}
+                      >
+                        {item}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                })}
+                <PaginationItem>
+                  <PaginationLink onClick={paginationNext} last />
+                </PaginationItem>
+              </Pagination>
             </Col>
           </Row>
         </Container>
@@ -105,3 +88,19 @@ export default class App extends Component {
     );
   }
 }
+
+function mapStateToProps(state) {
+  return {
+    suppliers: state.suppliersListReducer
+  };
+}
+
+function mapDispatchToProps(dispatch) {
+  return {
+    actions: {
+      getSuppliers: bindActionCreators(suppliersActions.getSuppliers, dispatch)
+    }
+  };
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);
